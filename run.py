@@ -14,7 +14,7 @@ from pathlib import Path
 def main():
     host = "127.0.0.1"
     port = 8000
-    reload = False
+    reload = True
 
     project_root = Path(__file__).parent.absolute()
     
