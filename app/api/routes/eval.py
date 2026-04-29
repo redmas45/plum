@@ -122,22 +122,37 @@ async def run_all_test_cases():
         end_time = time.time()
         total_time_sec = end_time - start_time
         
+        # Calculate Advanced Metrics
+        total = len(results)
+        accuracy = (passed / total * 100) if total > 0 else 0.0
+        
+        avg_confidence = sum(r.get("trace_summary", {}).get("confidence", 0) for r in results) / total if total > 0 else 0.0
+        degraded_cases = sum(1 for r in results if r.get("trace_summary", {}).get("degraded", False))
+        
+        avg_tokens = llm.stats['total_tokens'] / total if total > 0 else 0
+        avg_time = total_time_sec / total if total > 0 else 0
+        
         # Print Eval Stats to Terminal
         print("\n" + "="*50)
-        print("🚀 MODEL EVALUATION SUMMARY")
+        print("🚀 MODEL EVALUATION & PERFORMANCE SUMMARY")
         print("="*50)
-        print(f"Total Cases Run : {len(results)}")
+        print(f"Total Cases Run : {total}")
         print(f"Passed          : {passed}")
         print(f"Failed          : {failed}")
         print(f"Errors          : {errors}")
         print("-" * 50)
-        print("🤖 LLM PERFORMANCE STATS")
+        print("📊 CLASSIFICATION METRICS (Like mAP95 / R^2)")
+        print(f"Overall Accuracy: {accuracy:.1f}%")
+        print(f"Mean Confidence : {(avg_confidence * 100):.1f}%")
+        print(f"Fault Tolerance : {degraded_cases}/{total} cases gracefully degraded")
+        print("-" * 50)
+        print("🤖 LLM EFFICIENCY STATS")
         print(f"Vision Model    : {llm._vision_model}")
         print(f"Text Model      : {llm._text_model}")
         print(f"Total API Calls : {llm.stats['total_calls']}")
-        print(f"Total Tokens    : {llm.stats['total_tokens']}")
+        print(f"Token Efficiency: {avg_tokens:.0f} tokens / case")
         print(f"Total Eval Time : {total_time_sec:.2f} seconds")
-        print(f"Avg Time/Case   : {total_time_sec/len(results) if results else 0:.2f} seconds")
+        print(f"Avg Latency     : {avg_time:.2f} seconds / case")
         print("="*50 + "\n")
 
         return {
