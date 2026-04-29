@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plum | AI Claims Processing</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Plum Brand Colors */
+            --primary: #5925dc;
+            --primary-hover: #481db5;
+            --primary-light: #f2effd;
+            --secondary: #101828;
+            --accent: #ff477e;
+            
+            /* UI Colors */
+            --bg-body: #f9fafb;
+            --bg-card: #ffffff;
+            --border: #eaecf0;
+            --text-main: #101828;
+            --text-muted: #667085;
+            
+            /* Status Colors */
+            --status-approved: #027a48;
+            --status-approved-bg: #ecfdf3;
+            --status-partial: #b54708;
+            --status-partial-bg: #fffaeb;
+            --status-rejected: #b42318;
+            --status-rejected-bg: #fef3f2;
+            --status-manual: #344054;
+            --status-manual-bg: #f2f4f7;
+            
+            --radius: 12px;
+            --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(16, 24, 40, 0.1), 0 2px 4px -2px rgba(16, 24, 40, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(16, 24, 40, 0.1), 0 4px 6px -4px rgba(16, 24, 40, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* --- Layout & Navbar --- */
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 6px;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+            min-height: calc(100vh - 160px);
+        }
+
+        /* --- Views --- */
+        .view {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Components --- */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.625rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: white;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--bg-body);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            color: var(--secondary);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.625rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* File Upload */
+        .file-drop-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-color: var(--bg-body);
+            margin-bottom: 1rem;
+        }
+
+        .file-drop-area:hover, .file-drop-area.dragover {
+            border-color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .file-list {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 0.75rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border);
+            background-color: var(--bg-body);
+        }
+
+        td {
+            padding: 1rem;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-main);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #fcfcfd;
+        }
+
+        .clickable-row {
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        /* Trace UI */
+        .trace-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .trace-step {
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .trace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background-color: var(--bg-body);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .trace-header:hover {
+            background-color: #f2f4f7;
+        }
+
+        .trace-content {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+            background: white;
+            display: none;
+        }
+
+        .trace-step.open .trace-content {
+            display: block;
+        }
+
+        .json-block {
+            background-color: #101828;
+            color: #d0d5dd;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8125rem;
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        /* Loader */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--primary-light);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .alert-error {
+            background-color: var(--status-rejected-bg);
+            border: 1px solid #fec3a6;
+            color: var(--status-rejected);
+        }
+
+        /* Test Cases UI */
+        .tc-card {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tc-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        .tc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Utility */
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
+        .flex { display: flex; }
+        .justify-between { justify-content: space-between; }
+        .items-center { align-items: center; }
+        .gap-1 { gap: 0.5rem; }
+        .gap-2 { gap: 1rem; }
+        
+        .status-APPROVED { background: var(--status-approved-bg); color: var(--status-approved); }
+        .status-PARTIAL { background: var(--status-partial-bg); color: var(--status-partial); }
+        .status-REJECTED { background: var(--status-rejected-bg); color: var(--status-rejected); }
+        .status-MANUAL_REVIEW { background: var(--status-manual-bg); color: var(--status-manual); }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stat-val { font-size: 2rem; font-weight: 700; color: var(--primary); font-family: 'Outfit', sans-serif;}
+        .stat-label { font-size: 0.875rem; color: var(--text-muted); font-weight: 500;}
+
+        /* Custom Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: var(--status-rejected);
+        }
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .tc-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            font-size: 0.8rem;
+        }
+        .tc-card.open .tc-details {
+            display: block;
+        }
+        .tc-card.open p.text-muted {
+            height: auto;
+            -webkit-line-clamp: unset;
+        }
+
+        /* --- Print Stylesheet for Downloading PDF --- */
+        @media print {
+            body {
+                background: white;
+            }
+            header, .nav-container, .btn, .trace-container, #revErrorAlert, .print-hide {
+                display: none !important;
+            }
+            main {
+                margin: 0;
+                padding: 0;
+            }
+            .card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }
+            .stat-card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+            #view-review h3:contains('Pipeline Trace') {
+                display: none !important;
+            }
+            #revDecisionBadge {
+                border: 1px solid currentColor;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="nav-container">
+            <a href="#" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Plum AI Claims
+            </a>
+            <div class="nav-links">
+                <a class="nav-link active" onclick="switchView('dashboard')">Dashboard</a>
+                <a class="nav-link" onclick="switchView('submit')">Submit Claim</a>
+                <a class="nav-link" onclick="switchView('eval')">Run Eval</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- View 1: Dashboard / List -->
+        <div id="view-dashboard" class="view active">
+            <div class="flex justify-between items-center mb-2">
+                <h2>Claims Queue</h2>
+                <button class="btn btn-primary" onclick="switchView('submit')">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    New Claim
+                </button>
+            </div>
+            
+            <div class="card">
+                <div style="overflow-x: auto;">
+                    <table id="claimsTable">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Member</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th>Claimed (₹)</th>
+                                <th>Approved (₹)</th>
+                                <th>Decision</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="7" class="text-center">Loading claims...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 2: Submit Claim -->
+        <div id="view-submit" class="view">
+            <h2>Submit a Claim</h2>
+            <p class="text-muted mb-2">Upload documents and provide basic details to process a new claim.</p>
+            
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Claim Details</h3>
+                    <form id="submitForm" class="mt-2">
+                        <div class="form-group">
+                            <label>Member ID</label>
+                            <select id="memberId" required>
+                                <option value="EMP001">EMP001 - Rajesh Kumar</option>
+                                <option value="EMP002">EMP002 - Priya Singh</option>
+                                <option value="EMP003">EMP003 - Amit Verma</option>
+                                <option value="EMP004">EMP004 - Sneha Reddy</option>
+                                <option value="EMP005">EMP005 - Vikram Joshi</option>
+                                <option value="EMP006">EMP006 - Kavita Nair</option>
+                                <option value="EMP007">EMP007 - Suresh Patil</option>
+                                <option value="EMP008">EMP008 - Ravi Menon</option>
+                                <option value="EMP009">EMP009 - Anita Desai</option>
+                                <option value="EMP010">EMP010 - Deepak Shah</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select id="claimCategory" required>
+                                <option value="CONSULTATION">Consultation</option>
+                                <option value="DIAGNOSTIC">Diagnostic</option>
+                                <option value="PHARMACY">Pharmacy</option>
+                                <option value="DENTAL">Dental</option>
+                                <option value="VISION">Vision</option>
+                                <option value="ALTERNATIVE_MEDICINE">Alternative Medicine</option>
+                            </select>
+                        </div>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Treatment Date</label>
+                                <input type="date" id="treatmentDate" required value="2024-11-01">
+                            </div>
+                            <div class="form-group">
+                                <label>Claimed Amount (₹)</label>
+                                <input type="number" id="claimedAmount" required min="1" value="1500">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Hospital/Clinic Name (Optional)</label>
+                            <input type="text" id="hospitalName" placeholder="e.g. Apollo Hospitals">
+                        </div>
+                        
+                        <div style="border-top: 1px solid var(--border); padding-top: 1.5rem; margin-top: 1rem; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <h4 style="color: var(--status-rejected); margin-bottom: 0.25rem;">Simulate Component Failure</h4>
+                                <p class="text-muted" style="font-size: 0.75rem;">Force Agent 1 to fail to test graceful degradation (TC011)</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="simFailure">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <h3>Documents</h3>
+                    <p class="text-muted mb-2" style="font-size: 0.875rem;">Upload prescriptions, bills, and reports (Images/PDF).</p>
+                    
+                    <div class="file-drop-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" class="mb-1"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        <p><strong>Click or drag files here</strong></p>
+                        <p class="text-muted" style="font-size: 0.75rem;">Max 10MB per file</p>
+                        <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.png,.webp,.pdf" style="display: none;">
+                    </div>
+                    
+                    <ul class="file-list" id="fileList"></ul>
+                    
+                    <button class="btn btn-primary" style="width: 100%" onclick="submitClaim()">
+                        Process Claim via AI Pipeline
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 3: Claim Review (Trace) -->
+        <div id="view-review" class="view">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2">
+                    <button class="btn btn-secondary" onclick="switchView('dashboard')" style="padding: 0.5rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                    </button>
+                    <h2>Claim Review: <span id="revClaimId" style="color: var(--primary);"></span></h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button class="btn btn-secondary" onclick="downloadSummary()" style="padding: 0.5rem 1rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                        Download PDF
+                    </button>
+                    <div id="revDecisionBadge" class="badge"></div>
+                </div>
+            </div>
+            
+            <div id="revErrorAlert" class="alert alert-error" style="display: none;"></div>
+            
+            <div class="grid-3 mb-2">
+                <div class="stat-card">
+                    <div class="stat-label">Claimed Amount</div>
+                    <div class="stat-val" id="revClaimed">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Approved Amount</div>
+                    <div class="stat-val" id="revApproved" style="color: var(--status-approved);">₹0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">System Confidence</div>
+                    <div class="stat-val" id="revConfidence">0%</div>
+                </div>
+            </div>
+            
+            <div class="grid-2">
+                <div>
+                    <div class="card">
+                        <h3>Decision Summary</h3>
+                        <div id="revSummary" class="mt-2 text-main" style="font-size: 0.95rem;"></div>
+                        
+                        <h4 class="mt-2 mb-1">Reasons:</h4>
+                        <ul id="revReasons" style="padding-left: 1.5rem; font-size: 0.875rem;" class="text-muted"></ul>
+                        
+                        <div id="revLineItemsContainer" style="display: none;" class="mt-2">
+                            <h4 class="mb-1">Line Items:</h4>
+                            <table style="font-size: 0.8rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Amount</th>
+                                        <th>Status</th>
+                                        <th>Note</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="revLineItems"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="print-hide">
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-1">
+                            <h3>Pipeline Trace</h3>
+                        </div>
+                        <p class="text-muted mb-2" style="font-size: 0.875rem;">Explainable AI: Step-by-step reasoning</p>
+                        
+                        <div class="trace-container" id="revTrace">
+                            <!-- Trace steps injected here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- View 4: Run Eval -->
+        <div id="view-eval" class="view">
+            <div class="flex justify-between items-center mb-2">
+                <h2>Evaluation Suite</h2>
+                <button class="btn btn-primary" onclick="runEval()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Run All Test Cases
+                </button>
+            </div>
+            
+            <p class="text-muted mb-2">Run the 12 assignment test cases through the multi-agent pipeline to verify accuracy.</p>
+            
+            <div id="evalSummaryGrid" class="grid-3 mb-2" style="display: none;">
+                <div class="stat-card">
+                    <div class="stat-label">Total Cases</div>
+                    <div class="stat-val" id="evTotal">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Passed</div>
+                    <div class="stat-val" id="evPassed" style="color: var(--status-approved);">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Failed</div>
+                    <div class="stat-val" id="evFailed" style="color: var(--status-rejected);">0</div>
+                </div>
+            </div>
+            
+            <div id="evalResults" class="tc-grid">
+                <!-- Test cards injected here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Global Loader -->
+    <div class="loader-overlay" id="loader">
+        <div class="spinner"></div>
+        <h3 style="color: var(--primary);" id="loaderText">Processing Claim...</h3>
+        <p class="text-muted mt-1" style="font-size: 0.875rem;">Agents are analyzing documents and policy rules</p>
+    </div>
+
+    <script>
+        // State
+        let uploadedFiles = [];
+        let currentView = 'dashboard';
+        let currentClaimData = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadClaims();
+            setupFileDrop();
+        });
+
+        // Navigation
+        function switchView(viewName) {
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            
+            // Highlight nav (unless review which isn't in nav)
+            const navLink = document.querySelector(`.nav-link[onclick="switchView('${viewName}')"]`);
+            if (navLink) navLink.classList.add('active');
+            
+            currentView = viewName;
+            
+            if (viewName === 'dashboard') loadClaims();
+        }
+
+        function showLoader(text = 'Processing...') {
+            document.getElementById('loaderText').textContent = text;
+            document.getElementById('loader').style.display = 'flex';
+        }
+
+        function hideLoader() {
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        // --- File Upload Logic ---
+        function setupFileDrop() {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                handleFiles(e.dataTransfer.files);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                handleFiles(e.target.files);
+            });
+        }
+
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                uploadedFiles.push(files[i]);
+            }
+            renderFileList();
+        }
+
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        function renderFileList() {
+            const list = document.getElementById('fileList');
+            list.innerHTML = '';
+            
+            uploadedFiles.forEach((file, index) => {
+                const size = (file.size / (1024 * 1024)).toFixed(2);
+                const li = document.createElement('li');
+                li.className = 'file-item';
+                li.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+                        <span style="font-size: 0.875rem; font-weight: 500;">${file.name}</span>
+                        <span class="text-muted" style="font-size: 0.75rem;">(${size} MB)</span>
+                    </div>
+                    <button onclick="removeFile(${index})" style="background: none; border: none; cursor: pointer; color: var(--status-rejected);">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        // --- API Calls ---
+        async function loadClaims() {
+            try {
+                const res = await fetch('/claims/list');
+                const data = await res.json();
+                
+                const tbody = document.querySelector('#claimsTable tbody');
+                tbody.innerHTML = '';
+                
+                if (data.claims.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No claims submitted yet.</td></tr>';
+                    return;
+                }
+                
+                data.claims.forEach(claim => {
+                    const dec = claim.decision ? claim.decision.decision : claim.status;
+                    const approved = claim.decision ? claim.decision.approved_amount : 0;
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = 'clickable-row';
+                    tr.onclick = () => loadClaimDetails(claim.claim_id);
+                    tr.innerHTML = `
+                        <td style="font-family: monospace; font-weight: 600;">${claim.claim_id}</td>
+                        <td>${claim.member_id}</td>
+                        <td>${claim.claim_category}</td>
+                        <td>${claim.treatment_date}</td>
+                        <td>₹${claim.claimed_amount.toLocaleString()}</td>
+                        <td style="font-weight: 600;">₹${approved.toLocaleString()}</td>
+                        <td><span class="badge status-${dec}">${dec}</span></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function submitClaim() {
+            const memberId = document.getElementById('memberId').value;
+            const category = document.getElementById('claimCategory').value;
+            const date = document.getElementById('treatmentDate').value;
+            const amount = document.getElementById('claimedAmount').value;
+            const hospital = document.getElementById('hospitalName').value;
+            const simFail = document.getElementById('simFailure').checked;
+            
+            if (uploadedFiles.length === 0) {
+                alert("Please upload at least one document.");
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('member_id', memberId);
+            formData.append('claim_category', category);
+            formData.append('treatment_date', date);
+            formData.append('claimed_amount', amount);
+            if (hospital) formData.append('hospital_name', hospital);
+            if (simFail) formData.append('simulate_component_failure', 'true');
+            
+            uploadedFiles.forEach(file => {
+                formData.append('documents', file);
+            });
+            
+            showLoader('Agents analyzing claim...');
+            
+            try {
+                const res = await fetch('/claims/submit', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await res.json();
+                hideLoader();
+                
+                if (res.ok) {
+                    uploadedFiles = [];
+                    renderFileList();
+                    loadClaimDetails(data.claim_id);
+                } else {
+                    alert(`Error: ${data.detail?.message || JSON.stringify(data.detail)}`);
+                }
+            } catch (e) {
+                hideLoader();
+                alert(`Network error: ${e.message}`);
+            }
+        }
+
+        async function loadClaimDetails(claimId) {
+            showLoader('Loading Trace...');
+            try {
+                const res = await fetch(`/claims/${claimId}`);
+                const data = await res.json();
+                hideLoader();
+                
+                if (res.ok) {
+                    renderReviewView(data);
+                    switchView('review');
+                }
+            } catch (e) {
+                hideLoader();
+                alert('Error loading claim details');
+            }
+        }
+
+        function renderReviewView(claim) {
+            currentClaimData = claim;
+            const dec = claim.decision;
+            if (!dec) return;
+            
+            document.getElementById('revClaimId').textContent = claim.claim_id;
+            
+            const badge = document.getElementById('revDecisionBadge');
+            badge.className = `badge status-${dec.decision}`;
+            badge.textContent = dec.decision;
+            
+            document.getElementById('revClaimed').textContent = `₹${claim.claimed_amount.toLocaleString()}`;
+            document.getElementById('revApproved').textContent = `₹${dec.approved_amount.toLocaleString()}`;
+            document.getElementById('revConfidence').textContent = `${(dec.confidence_score * 100).toFixed(0)}%`;
+            
+            if (dec.notes) {
+                const parts = dec.notes.split(' | ');
+                document.getElementById('revSummary').innerHTML = parts.map(p => 
+                    `<div style="margin-bottom: 0.75rem; padding-left: 1rem; border-left: 3px solid var(--primary-light); color: var(--text-main); font-size: 0.95rem;">${p}</div>`
+                ).join('');
+            } else {
+                document.getElementById('revSummary').textContent = 'No summary available.';
+            }
+            
+            const reasonsUl = document.getElementById('revReasons');
+            reasonsUl.innerHTML = '';
+            dec.reasons.forEach(r => {
+                const li = document.createElement('li');
+                li.textContent = r;
+                reasonsUl.appendChild(li);
+            });
+            
+            // Error Alert if early rejection (e.g. docs)
+            const alert = document.getElementById('revErrorAlert');
+            if (dec.decision === 'REJECTED' && dec.rejection_codes && dec.rejection_codes.length === 0) {
+                alert.style.display = 'flex';
+                alert.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <div><strong>Pipeline Stopped:</strong> ${dec.reasons[0]}</div>
+                `;
+            } else {
+                alert.style.display = 'none';
+            }
+            
+            // Line items
+            const liContainer = document.getElementById('revLineItemsContainer');
+            if (dec.line_item_decisions && dec.line_item_decisions.length > 0) {
+                liContainer.style.display = 'block';
+                const liTbody = document.getElementById('revLineItems');
+                liTbody.innerHTML = '';
+                dec.line_item_decisions.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${item.description}</td>
+                        <td>₹${item.amount.toLocaleString()}</td>
+                        <td><span class="badge status-${item.approved ? 'APPROVED' : 'REJECTED'}">${item.approved ? 'Covered' : 'Excluded'}</span></td>
+                        <td class="text-muted" style="font-size: 0.75rem;">${item.reason}</td>
+                    `;
+                    liTbody.appendChild(tr);
+                });
+            } else {
+                liContainer.style.display = 'none';
+            }
+            
+            // Trace
+            const traceData = claim.trace || { steps: [] };
+            
+            const traceContainer = document.getElementById('revTrace');
+            traceContainer.innerHTML = '';
+            
+            traceData.steps.forEach((step, idx) => {
+                const isFailed = step.status === 'FAILED';
+                const statusColor = isFailed ? 'var(--status-rejected)' : 
+                                  (step.status === 'SKIPPED' ? 'var(--text-muted)' : 'var(--status-approved)');
+                const statusIcon = isFailed ? 
+                    '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>' : 
+                    '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>';
+                
+                const html = `
+                    <div class="trace-step">
+                        <div class="trace-header" onclick="this.parentElement.classList.toggle('open')">
+                            <div class="flex items-center gap-1">
+                                <span style="display: flex; justify-content: center; align-items: center; width: 24px; height: 24px; border-radius: 50%; background: ${isFailed ? '#fef3f2' : '#ecfdf3'}; color: ${statusColor};">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        ${statusIcon}
+                                    </svg>
+                                </span>
+                                <strong>Agent ${idx+1}: ${formatAgentName(step.agent)}</strong>
+                            </div>
+                            <div class="flex items-center gap-2 text-muted" style="font-size: 0.8rem;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            </div>
+                        </div>
+                        <div class="trace-content">
+                            <p style="font-size: 0.875rem; margin-bottom: 0.5rem;"><strong>Action:</strong> ${step.input_summary}</p>
+                            <p style="font-size: 0.875rem; margin-bottom: 0.5rem; color: ${isFailed ? 'var(--status-rejected)' : 'inherit'};"><strong>Result:</strong> ${step.output_summary}</p>
+                            
+                            <div class="flex gap-2 mt-1 mb-1">
+                                <span class="badge" style="background: #f2f4f7; color: #475467;">Conf: ${(step.confidence_after*100).toFixed(0)}%</span>
+                                ${step.llm_calls > 0 ? `<span class="badge" style="background: #f2effd; color: var(--primary);">LLM Calls: ${step.llm_calls}</span>` : ''}
+                            </div>
+                            
+                            ${step.output_data ? `<div class="json-block">${JSON.stringify(step.output_data, null, 2)}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+                traceContainer.innerHTML += html;
+            });
+        }
+
+        // --- Eval ---
+        async function runEval() {
+            showLoader('Running Test Suite... (Takes ~1 min)');
+            try {
+                const res = await fetch('/eval/run-all', { method: 'POST' });
+                const data = await res.json();
+                hideLoader();
+                
+                if (res.ok) {
+                    renderEvalResults(data);
+                } else {
+                    alert(`Error: ${data.detail}`);
+                }
+            } catch (e) {
+                hideLoader();
+                alert(`Network error: ${e.message}`);
+            }
+        }
+
+        function renderEvalResults(data) {
+            document.getElementById('evalSummaryGrid').style.display = 'grid';
+            document.getElementById('evTotal').textContent = data.summary.total;
+            document.getElementById('evPassed').textContent = data.summary.passed;
+            document.getElementById('evFailed').textContent = data.summary.failed;
+            
+            const grid = document.getElementById('evalResults');
+            grid.innerHTML = '';
+            
+            data.results.forEach(tc => {
+                const isPass = tc.status === 'PASS';
+                const borderClr = isPass ? 'var(--status-approved)' : 'var(--status-rejected)';
+                
+                const card = document.createElement('div');
+                card.className = 'card tc-card';
+                card.style.borderTop = `4px solid ${borderClr}`;
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <strong style="font-family: 'Outfit'; font-size: 1.1rem;">${tc.case_id}</strong>
+                        <span class="badge status-${isPass ? 'APPROVED' : 'REJECTED'}">${tc.status}</span>
+                    </div>
+                    <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">${tc.case_name}</p>
+                    <p class="text-muted mb-2" style="font-size: 0.8rem; height: 3rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;">${tc.description}</p>
+                    
+                    <div style="background: var(--bg-body); padding: 0.75rem; border-radius: 8px; font-size: 0.8rem;">
+                        <div class="flex justify-between mb-1">
+                            <span class="text-muted">Expected:</span>
+                            <strong>${tc.expected_decision || 'N/A'}</strong>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-muted">Actual:</span>
+                            <strong style="color: ${isPass ? 'inherit' : 'var(--status-rejected)'};">${tc.actual_decision || 'ERROR'}</strong>
+                        </div>
+                    </div>
+                    <div class="tc-details">
+                        <p><strong>Input Parameters:</strong></p>
+                        <ul style="padding-left: 1rem; margin-top: 0.25rem;">
+                            <li>Amount: ₹${tc.expected?.input_claimed_amount || 'N/A'}</li>
+                            <li>Category: ${tc.expected?.input_category || 'N/A'}</li>
+                        </ul>
+                        <div class="mt-1">
+                            <p><strong>Trace Summary:</strong></p>
+                            <span class="badge mt-1" style="background: #f2f4f7;">Confidence: ${((tc.trace_summary?.confidence || 0)*100).toFixed(0)}%</span>
+                            ${tc.trace_summary?.degraded ? `<span class="badge mt-1" style="background: var(--status-rejected-bg); color: var(--status-rejected);">Degraded</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => card.classList.toggle('open');
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function formatAgentName(str) {
+            return str.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        }
+        
+        function downloadSummary() {
+            if (!currentClaimData) return;
+            const claim = currentClaimData;
+            const dec = claim.decision;
+            
+            // Build beautiful printable HTML
+            const printHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Plum AI Report - ${claim.claim_id}</title>
+                <style>
+                    body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 40px; color: #333; line-height: 1.6; }
+                    .header { text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 2px solid #5925dc; }
+                    .header h1 { margin: 0; color: #5925dc; font-size: 28px; font-weight: bold; }
+                    .header p { margin: 5px 0 0; color: #666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+                    .watermark { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 100px; color: rgba(89, 37, 220, 0.04); z-index: -1; white-space: nowrap; pointer-events: none; font-weight: bold; }
+                    .section { margin-bottom: 30px; }
+                    .section h2 { font-size: 18px; color: #5925dc; border-bottom: 1px solid #eee; padding-bottom: 8px; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
+                    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+                    th { background-color: #f9fafb; font-weight: 600; color: #555; width: 20%; }
+                    .summary-item { margin-bottom: 12px; padding-left: 15px; border-left: 3px solid #5925dc; font-size: 15px; }
+                    .status { font-weight: bold; padding: 4px 8px; border-radius: 4px; display: inline-block; font-size: 13px; }
+                    .APPROVED { background-color: #ecfdf3; color: #027a48; }
+                    .REJECTED { background-color: #fef3f2; color: #b42318; }
+                    .PARTIAL { background-color: #fffaeb; color: #b54708; }
+                    .MANUAL_REVIEW { background-color: #f2f4f7; color: #344054; }
+                    .footer { margin-top: 60px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 20px; }
+                    @page { margin: 1cm; size: auto; }
+                    @media print {
+                        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="watermark">PLUM AI REPORT</div>
+                <div class="header">
+                    <h1>Plum AI Claims</h1>
+                    <p>Official Claim Assessment Report</p>
+                </div>
+                
+                <div class="section">
+                    <h2>Claim Information</h2>
+                    <table>
+                        <tr><th>Claim ID</th><td>${claim.claim_id}</td><th>Member ID</th><td>${claim.member_id}</td></tr>
+                        <tr><th>Category</th><td>${claim.claim_category}</td><th>Treatment Date</th><td>${claim.treatment_date}</td></tr>
+                        <tr><th>Claimed Amount</th><td>₹${claim.claimed_amount.toLocaleString()}</td><th>Approved Amount</th><td style="font-size: 16px;"><strong>₹${dec.approved_amount.toLocaleString()}</strong></td></tr>
+                        <tr><th>Decision</th><td colspan="3"><span class="status ${dec.decision}">${dec.decision}</span> <span style="color: #666; margin-left: 10px; font-size: 13px;">(AI Confidence: ${(dec.confidence_score * 100).toFixed(0)}%)</span></td></tr>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <h2>Decision Summary</h2>
+                    ${dec.notes ? dec.notes.split(' | ').map(p => `<div class="summary-item">${p}</div>`).join('') : '<p>No summary provided.</p>'}
+                </div>
+                
+                ${dec.line_item_decisions && dec.line_item_decisions.length > 0 ? `
+                <div class="section">
+                    <h2>Line Items Breakdown</h2>
+                    <table>
+                        <tr><th style="width: 40%">Description</th><th style="width: 15%">Amount</th><th style="width: 15%">Status</th><th style="width: 30%">Reason</th></tr>
+                        ${dec.line_item_decisions.map(item => `
+                        <tr>
+                            <td>${item.description}</td>
+                            <td>₹${item.amount.toLocaleString()}</td>
+                            <td><span class="status ${item.approved ? 'APPROVED' : 'REJECTED'}">${item.approved ? 'Covered' : 'Excluded'}</span></td>
+                            <td style="color: #666;">${item.reason}</td>
+                        </tr>
+                        `).join('')}
+                    </table>
+                </div>
+                ` : ''}
+
+                <div class="footer">
+                    <p>This document was automatically generated by the Plum AI Claims Processing System.</p>
+                    <p>Generated on ${new Date().toLocaleString()}</p>
+                </div>
+            </body>
+            </html>
+            `;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printHtml);
+            printWindow.document.close();
+            printWindow.onload = function() {
+                printWindow.print();
+            };
+        }
+    </script>
+</body>
+</html>

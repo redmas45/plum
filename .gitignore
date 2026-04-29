@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Plum specific
+plum-claims/uploads/
+plum-claims/data/claims.db
