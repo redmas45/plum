@@ -90,6 +90,8 @@ async def run_all_test_cases():
                     "case_id": case_id,
                     "case_name": tc["case_name"],
                     "description": tc["description"],
+                    "input_amount": inp.get("claimed_amount", "N/A"),
+                    "input_category": inp.get("claim_category", "N/A"),
                     "expected_decision": expected_decision,
                     "actual_decision": actual_decision,
                     "match": match,
