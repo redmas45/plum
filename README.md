@@ -178,6 +178,28 @@ Avg Latency     : 2.59 seconds / case
 
 This ensures we can actively monitor token cost, processing latency, and pipeline reasoning accuracy with every iteration.
 
+> **Formal Eval Report**: For detailed per-test-case analysis with traces and failure analysis, see [`docs/eval_report.md`](docs/eval_report.md).
+
+## 🧬 Unit Tests
+
+The system has **92 unit tests** covering all significant components. Tests run without any LLM API calls (mocked).
+
+```bash
+python -m pytest tests/ -v
+```
+
+| Test File | Tests | What It Covers |
+|---|---|---|
+| `test_confidence.py` | 17 | Confidence scoring: deductions, caps, boosts, floors |
+| `test_policy.py` | 25 | Policy terms: members, coverage, doc requirements, thresholds |
+| `test_doc_verifier.py` | 14 | Doc verification: type checking, name matching, quality |
+| `test_policy_checker.py` | 10 | Policy rules: limits, waiting periods, exclusions, financial math |
+| `test_fraud_detector.py` | 10 | Fraud detection: same-day limits, high-value flags, consistency |
+
+```text
+========================= 92 passed in 0.79s =========================
+```
+
 ## 📊 Pipeline Overview
 
 1. **User submits claim** via the frontend (Member ID, Category, Amount, Documents).
