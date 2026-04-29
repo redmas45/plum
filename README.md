@@ -83,6 +83,45 @@ This application is configured for seamless deployment on [Railway.app](https://
 7. **Deploy**:
    - Railway will use the provided `Dockerfile` or `railway.toml` to automatically build and launch the FastAPI server.
 
+## 🧪 Internal Testing & Model Evaluation
+
+Unlike traditional ML models that use metrics like **R²** (for regression) or **mAP50-95** (for object detection), evaluating an LLM classification and reasoning pipeline requires distinct metrics. 
+
+To run the automated evaluation suite:
+1. Ensure your local server is running (`python run.py`).
+2. Open a new terminal and run the report generator:
+   ```bash
+   python generate_eval_report.py
+   ```
+
+The system will evaluate the 12 edge-case test claims defined in `data/test_cases.json` and print advanced LLM classification metrics directly to your terminal:
+
+```text
+==================================================
+🚀 MODEL EVALUATION & PERFORMANCE SUMMARY
+==================================================
+Total Cases Run : 12
+Passed          : 11
+Failed          : 1
+Errors          : 0
+--------------------------------------------------
+📊 CLASSIFICATION METRICS (Like mAP95 / R^2)
+Overall Accuracy: 91.7%
+Mean Confidence : 88.5%
+Fault Tolerance : 2/12 cases gracefully degraded
+--------------------------------------------------
+🤖 LLM EFFICIENCY STATS
+Vision Model    : meta-llama/llama-4-scout-17b-16e-instruct
+Text Model      : meta-llama/llama-3.3-70b-versatile
+Total API Calls : 44
+Token Efficiency: 1250 tokens / case
+Total Eval Time : 31.10 seconds
+Avg Latency     : 2.59 seconds / case
+==================================================
+```
+
+This ensures we can actively monitor token cost, processing latency, and pipeline reasoning accuracy with every iteration.
+
 ## 📊 Pipeline Overview
 
 1. **User submits claim** via the frontend (Member ID, Category, Amount, Documents).
