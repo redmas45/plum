@@ -83,6 +83,62 @@ This application is configured for seamless deployment on [Railway.app](https://
 7. **Deploy**:
    - Railway will use the provided `Dockerfile` or `railway.toml` to automatically build and launch the FastAPI server.
 
+## 📋 Policy Rules Quick Reference
+
+> All rules are loaded at runtime from `data/policy_terms.json`. Nothing is hardcoded. For the complete reference, see [`docs/policy_reference.md`](docs/policy_reference.md).
+
+### Coverage Limits
+
+| Limit Type | Amount |
+|---|---|
+| Sum Insured (per employee) | ₹5,00,000 |
+| Annual OPD Limit | ₹50,000 |
+| **Per-Claim Limit** | **₹5,000** |
+| Family Floater Combined | ₹1,50,000 |
+
+### Category Sub-Limits & Financial Rules
+
+| Category | Sub-Limit | Co-Pay | Network Discount |
+|---|---|---|---|
+| CONSULTATION | ₹2,000 | 10% | 20% |
+| DIAGNOSTIC | ₹10,000 | 0% | 10% |
+| PHARMACY | ₹15,000 | 0% (30% branded) | — |
+| DENTAL | ₹10,000 | 0% | — |
+| VISION | ₹5,000 | 0% | — |
+| ALTERNATIVE_MEDICINE | ₹8,000 | 0% | — |
+
+### Required Documents Per Category
+
+| Category | Required Documents | Optional |
+|---|---|---|
+| CONSULTATION | Prescription + Hospital Bill | Lab Report, Diagnostic Report |
+| DIAGNOSTIC | Prescription + Lab Report + Hospital Bill | Discharge Summary |
+| PHARMACY | Prescription + Pharmacy Bill | — |
+| DENTAL | Hospital Bill only | Prescription, Dental Report |
+| VISION | Prescription + Hospital Bill | — |
+| ALTERNATIVE_MEDICINE | Prescription + Hospital Bill | — |
+
+### Key Conditions
+
+- **Waiting Period**: 30-day initial waiting period from member's join date. Condition-specific waiting periods range from 90 days (diabetes, hypertension) to 730 days (joint replacement).
+- **Exclusions**: Cosmetic procedures, self-inflicted injuries, substance abuse, experimental treatments, teeth whitening, LASIK, etc.
+- **Pre-Authorization**: Required for MRI/CT/PET scans above ₹10,000 and major surgical procedures.
+- **Submission Deadline**: Claims must be submitted within 30 days of treatment date.
+- **Minimum Claim**: ₹500.
+
+### Fraud Thresholds
+
+| Rule | Limit |
+|---|---|
+| Same-day claims | Max 2 per day |
+| Monthly claims | Max 6 per month |
+| High-value auto-review | ≥ ₹25,000 |
+
+### Network Hospitals (10)
+Apollo, Fortis, Max, Manipal, Narayana Health, Medanta, Kokilaben, Aster CMI, Columbia Asia, Sakra World.
+
+---
+
 ## 🧪 Internal Testing & Model Evaluation
 
 Unlike traditional ML models that use metrics like **R²** (for regression) or **mAP50-95** (for object detection), evaluating an LLM classification and reasoning pipeline requires distinct metrics. 
