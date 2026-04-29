@@ -43,6 +43,19 @@ class Settings(BaseSettings):
         default=1.0, alias="INITIAL_CONFIDENCE",
         description="Starting confidence score for the pipeline (0.0-1.0)"
     )
+    # Deduction values per scenario
+    confidence_deduct_unreadable_doc: float = Field(default=0.5, alias="CONFIDENCE_DEDUCT_UNREADABLE_DOC")
+    confidence_deduct_missing_doc: float = Field(default=1.0, alias="CONFIDENCE_DEDUCT_MISSING_DOC")
+    confidence_deduct_patient_mismatch: float = Field(default=1.0, alias="CONFIDENCE_DEDUCT_PATIENT_MISMATCH")
+    confidence_deduct_poor_quality: float = Field(default=0.05, alias="CONFIDENCE_DEDUCT_POOR_QUALITY")
+    confidence_deduct_doc_agent_error: float = Field(default=0.3, alias="CONFIDENCE_DEDUCT_DOC_AGENT_ERROR")
+    confidence_deduct_component_failure: float = Field(default=0.2, alias="CONFIDENCE_DEDUCT_COMPONENT_FAILURE")
+    confidence_deduct_policy_violation: float = Field(default=1.0, alias="CONFIDENCE_DEDUCT_POLICY_VIOLATION")
+    confidence_deduct_policy_agent_error: float = Field(default=0.25, alias="CONFIDENCE_DEDUCT_POLICY_AGENT_ERROR")
+    confidence_deduct_llm_fallback: float = Field(default=0.05, alias="CONFIDENCE_DEDUCT_LLM_FALLBACK")
+    confidence_deduct_fraud_same_day: float = Field(default=0.15, alias="CONFIDENCE_DEDUCT_FRAUD_SAME_DAY")
+    confidence_deduct_doc_inconsistency: float = Field(default=0.1, alias="CONFIDENCE_DEDUCT_DOC_INCONSISTENCY")
+    confidence_deduct_fraud_agent_error: float = Field(default=0.2, alias="CONFIDENCE_DEDUCT_FRAUD_AGENT_ERROR")
 
     # ── Paths ──────────────────────────────────────────
     policy_file: str = Field(

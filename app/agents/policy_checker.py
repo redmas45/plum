@@ -19,6 +19,7 @@ from app.models.trace import AgentName, AgentStep, FailureRecord, StepStatus
 from app.services.llm_client import LLMClient
 from app.utils.confidence import ConfidenceTracker
 from app.utils.prompts import POLICY_CHECKER_SYSTEM, POLICY_CHECKER_USER
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,7 @@ class PolicyChecker:
                 result.eligible = False
                 result.rejection_reasons.append(f"Member '{member_id}' not found in policy roster")
                 result.rejection_codes.append("MEMBER_NOT_FOUND")
-                confidence.deduct(1.0, "Member not found")
+                confidence.deduct(settings.confidence_deduct_policy_violation, "Member not found")
                 step.output_summary = "REJECTED: Member not found"
                 step.output_data = result.to_dict()
                 step.confidence_after = confidence.score
@@ -106,7 +107,7 @@ class PolicyChecker:
                 result.eligible = False
                 result.rejection_reasons.append(f"Category '{claim_category.value}' not found in policy")
                 result.rejection_codes.append("CATEGORY_NOT_COVERED")
-                confidence.deduct(1.0, "Category not covered")
+                confidence.deduct(settings.confidence_deduct_policy_violation, "Category not covered")
                 step.output_summary = "REJECTED: Category not covered"
                 step.output_data = result.to_dict()
                 step.confidence_after = confidence.score
@@ -239,7 +240,7 @@ class PolicyChecker:
                     result.notes += llm_result["notes"]
             except Exception as e:
                 logger.warning(f"LLM policy check failed, using deterministic only: {e}")
-                confidence.deduct(0.05, "LLM reasoning unavailable, using rules only")
+                confidence.deduct(settings.confidence_deduct_llm_fallback, "LLM reasoning unavailable, using rules only")
 
             step.output_summary = f"Eligible: approved ₹{result.approved_amount:,.0f}"
             step.output_data = result.to_dict()
@@ -254,7 +255,7 @@ class PolicyChecker:
                 error_type=type(e).__name__,
                 error_message=str(e),
             )
-            confidence.deduct(0.25, f"Policy checker failed: {e}")
+            confidence.deduct(settings.confidence_deduct_policy_agent_error, f"Policy checker failed: {e}")
             step.confidence_after = confidence.score
             step.output_summary = f"FAILED: {e}"
             return result, self._finalize_step(step, start_time)

@@ -18,6 +18,7 @@ from app.models.trace import AgentName, AgentStep, FailureRecord, StepStatus
 from app.services.llm_client import LLMClient
 from app.utils.confidence import ConfidenceTracker
 from app.utils.prompts import FRAUD_DETECTOR_SYSTEM, FRAUD_DETECTOR_USER
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ class FraudDetector:
                     f"on {treatment_date}, exceeding the limit of {thresholds.same_day_claims_limit}. "
                     f"Previous claims were at different providers, which is suspicious."
                 )
-                confidence.deduct(0.15, f"Same-day claims exceeded ({same_day_count + 1} claims)")
+                confidence.deduct(settings.confidence_deduct_fraud_same_day, f"Same-day claims exceeded ({same_day_count + 1} claims)")
 
             # ── 2. High-value claim check ────────────────
             if claimed_amount >= thresholds.high_value_claim_threshold:
@@ -132,7 +133,7 @@ class FraudDetector:
                     result.signals.append(obs)
                     if obs["severity"] == "HIGH":
                         result.fraud_score = max(result.fraud_score, 0.7)
-                        confidence.deduct(0.1, f"Document inconsistency: {obs['signal']}")
+                        confidence.deduct(settings.confidence_deduct_doc_inconsistency, f"Document inconsistency: {obs['signal']}")
 
             # ── 4. Set risk level ────────────────────────
             if result.fraud_score >= 0.8:
@@ -168,7 +169,7 @@ class FraudDetector:
 
                 except Exception as e:
                     logger.warning(f"LLM fraud check failed: {e}")
-                    confidence.deduct(0.05, "LLM fraud reasoning unavailable")
+                    confidence.deduct(settings.confidence_deduct_llm_fallback, "LLM fraud reasoning unavailable")
 
             step.output_summary = (
                 f"Fraud score: {result.fraud_score:.2f}, "
@@ -188,7 +189,7 @@ class FraudDetector:
                 error_type=type(e).__name__,
                 error_message=str(e),
             )
-            confidence.deduct(0.2, f"Fraud detector failed: {e}")
+            confidence.deduct(settings.confidence_deduct_fraud_agent_error, f"Fraud detector failed: {e}")
             step.confidence_after = confidence.score
             step.output_summary = f"FAILED: {e}"
             return result, self._finalize_step(step, start_time)

@@ -86,7 +86,7 @@ class Orchestrator:
                 error_message="Component failure simulated for testing graceful degradation",
                 recoverable=True,
             )
-            confidence.deduct(0.2, "Component failure (simulated) — doc verification skipped")
+            confidence.deduct(settings.confidence_deduct_component_failure, "Component failure (simulated) -- doc verification skipped")
             step.confidence_after = confidence.score
             step.completed_at = datetime.utcnow().isoformat()
             trace.add_step(step)

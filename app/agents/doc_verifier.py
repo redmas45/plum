@@ -24,6 +24,7 @@ from app.services.llm_client import LLMClient
 from app.utils.confidence import ConfidenceTracker
 from app.utils.exceptions import DocumentVerificationError
 from app.utils.prompts import DOC_VERIFICATION_SYSTEM, DOC_VERIFICATION_USER
+from app.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +88,7 @@ class DocVerifier:
                     documents_found=[{"file_name": d["file_name"], "type": d["detected_type"]} for d in classified_docs],
                     documents_required=required_types,
                 )
-                confidence.deduct(0.5, "Unreadable document(s) detected")
+                confidence.deduct(settings.confidence_deduct_unreadable_doc, "Unreadable document(s) detected")
                 step.status = StepStatus.SUCCESS  # Agent succeeded, doc is bad
                 step.output_summary = f"UNREADABLE: {len(unreadable)} document(s) cannot be read"
                 step.output_data = result.model_dump()
@@ -117,7 +118,7 @@ class DocVerifier:
                     documents_required=required_types,
                     documents_missing=missing_types,
                 )
-                confidence.deduct(1.0, f"Missing required documents: {missing_types}")
+                confidence.deduct(settings.confidence_deduct_missing_doc, f"Missing required documents: {missing_types}")
                 step.output_summary = f"WRONG_TYPE: Missing {missing_types}"
                 step.output_data = result.model_dump()
                 step.confidence_after = confidence.score
@@ -145,7 +146,7 @@ class DocVerifier:
                     ],
                     documents_required=required_types,
                 )
-                confidence.deduct(1.0, f"Patient name mismatch: {unique_names}")
+                confidence.deduct(settings.confidence_deduct_patient_mismatch, f"Patient name mismatch: {unique_names}")
                 step.output_summary = f"PATIENT_MISMATCH: Names found: {unique_names}"
                 step.output_data = result.model_dump()
                 step.confidence_after = confidence.score
@@ -171,7 +172,7 @@ class DocVerifier:
             poor_docs = [d for d in classified_docs if d["quality"] == "POOR"]
             if poor_docs:
                 confidence.deduct(
-                    0.05 * len(poor_docs),
+                    settings.confidence_deduct_poor_quality * len(poor_docs),
                     f"{len(poor_docs)} document(s) with poor quality",
                 )
 
@@ -188,7 +189,7 @@ class DocVerifier:
                 error_type=type(e).__name__,
                 error_message=str(e),
             )
-            confidence.deduct(0.3, f"Doc verification agent failed: {e}")
+            confidence.deduct(settings.confidence_deduct_doc_agent_error, f"Doc verification agent failed: {e}")
             step.confidence_after = confidence.score
             step.output_summary = f"FAILED: {e}"
 
