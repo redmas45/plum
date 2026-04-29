@@ -49,6 +49,21 @@ A multi-agent, AI-powered health insurance claims processing system. This projec
    GROQ_API_KEY=your_actual_groq_api_key_here
    ```
 
+   The `.env` file also exposes **confidence scoring tunables** — no code changes needed to adjust system strictness:
+
+   | Variable | Default | What It Controls |
+   |---|---|---|
+   | `INITIAL_CONFIDENCE` | 1.0 | Starting confidence for every claim |
+   | `CONFIDENCE_DEDUCT_UNREADABLE_DOC` | 0.5 | Blurry/unreadable document penalty |
+   | `CONFIDENCE_DEDUCT_MISSING_DOC` | 1.0 | Wrong document type (instant reject) |
+   | `CONFIDENCE_DEDUCT_PATIENT_MISMATCH` | 1.0 | Name mismatch across docs (instant reject) |
+   | `CONFIDENCE_DEDUCT_POOR_QUALITY` | 0.05 | Low quality but readable doc |
+   | `CONFIDENCE_DEDUCT_COMPONENT_FAILURE` | 0.2 | Agent crash / graceful degradation |
+   | `CONFIDENCE_DEDUCT_POLICY_VIOLATION` | 1.0 | Policy rule violation (instant reject) |
+   | `CONFIDENCE_DEDUCT_LLM_FALLBACK` | 0.05 | LLM unavailable, rules-only fallback |
+   | `CONFIDENCE_DEDUCT_FRAUD_SAME_DAY` | 0.15 | Same-day claims exceeded |
+   | `CONFIDENCE_DEDUCT_DOC_INCONSISTENCY` | 0.1 | Inconsistent data across documents |
+
 5. **Run the Server**
    ```bash
    python run.py
@@ -178,7 +193,7 @@ Avg Latency     : 2.59 seconds / case
 
 This ensures we can actively monitor token cost, processing latency, and pipeline reasoning accuracy with every iteration.
 
-> **Formal Eval Report**: For detailed per-test-case analysis with traces and failure analysis, see [`docs/eval_report.md`](docs/eval_report.md).
+> **Formal Eval Report**: Available as a downloadable deliverable via the **Run Eval** tab in the dashboard, or directly at `/eval/report/download`. Full per-test-case analysis with traces and failure analysis: [`docs/eval_report.md`](docs/eval_report.md).
 
 ## 🧬 Unit Tests
 
@@ -200,6 +215,14 @@ python -m pytest tests/ -v
 ========================= 92 passed in 0.79s =========================
 ```
 
+## 🗂️ Custom Test Dataset
+
+The `custom_dataset/` folder contains **10 manually curated test cases** with AI-generated Indian medical document images (prescriptions, hospital bills, lab reports, pharmacy bills) for end-to-end validation via the UI.
+
+Covers all 6 claim categories + edge cases: wrong documents, excluded procedures, over-limit claims.
+
+See [`custom_dataset/README.md`](custom_dataset/README.md) for the complete guide with form values and expected results.
+
 ## 📊 Pipeline Overview
 
 1. **User submits claim** via the frontend (Member ID, Category, Amount, Documents).
@@ -208,6 +231,15 @@ python -m pytest tests/ -v
 4. **Policy Checker**: Cross-references the extracted data against the member's policy terms (Coverage limits, exclusions).
 5. **Fraud Detector**: Analyzes claim patterns and descriptions for anomalies or synthetic fraud.
 6. **Decision Maker**: Synthesizes reports from all previous agents and generates a final adjudication decision (APPROVED, REJECTED, MANUAL_REVIEW) with an approved amount and a human-readable summary.
+
+## 📖 Documentation
+
+| Document | Description |
+|---|---|
+| [`docs/architecture.md`](docs/architecture.md) | System design, component contracts, data flow |
+| [`docs/policy_reference.md`](docs/policy_reference.md) | Complete policy rules reference (from `policy_terms.json`) |
+| [`docs/eval_report.md`](docs/eval_report.md) | Formal evaluation report — Deliverable #4 |
+| [`custom_dataset/README.md`](custom_dataset/README.md) | 10 custom test cases guide |
 
 ---
 *Built by Rajiv Kumar for Plum AI*
