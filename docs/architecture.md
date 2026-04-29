@@ -40,6 +40,20 @@ A core requirement was that every decision must be explainable. This is achieved
 - The `AgentStep` records input summaries, outputs, LLM tokens used, processing time, and any deductions to the `ConfidenceTracker`.
 - The final payload includes the full trace, allowing human operators to see exactly which agent made which decision.
 
+## Design Alternatives Considered and Rejected
+
+During the design phase, several alternative architectures were evaluated and ultimately rejected:
+
+1. **Single Monolithic LLM Call:**
+   - *Considered:* Passing all raw text and document OCR into a single massive LLM prompt and asking for a final "APPROVED/REJECTED" output.
+   - *Rejected:* This black-box approach violates the Explainable AI (XAI) requirement. If the model rejects a claim, it is impossible to debug whether it misread the receipt or misunderstood the policy. It also costs significantly more tokens for simple rejections.
+2. **Pure Deterministic Rules Engine (No LLM):**
+   - *Considered:* Building massive if/else trees for all policy terms and using traditional OCR (like Tesseract).
+   - *Rejected:* Traditional OCR struggles heavily with handwritten medical receipts. Furthermore, writing hardcoded rules for every possible medical diagnosis mapping is impossible at scale. The LLM provides necessary semantic reasoning.
+3. **Fully Asynchronous Event-Driven Architecture (Kafka/RabbitMQ):**
+   - *Considered:* Decoupling every agent into its own microservice communicating via message queues.
+   - *Rejected:* Over-engineering for the current scope. It introduces massive infrastructure complexity (managing queues, distributed tracing, eventual consistency). The sequential Orchestrator pattern provides the necessary separation of concerns without the deployment nightmare, and can be easily migrated to Celery/Temporal later if 10x scale is reached.
+
 ## Graceful Degradation
 
 If an agent fails (e.g., LLM timeout, parsing error), the pipeline does not crash (Test Case TC011).
