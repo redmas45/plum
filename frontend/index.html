@@ -403,6 +403,59 @@
             color: var(--status-rejected);
         }
 
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            min-width: 320px;
+            max-width: 440px;
+            padding: 1rem 1.25rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            animation: toastIn 0.35s ease;
+            font-family: 'Inter', sans-serif;
+        }
+        .toast.toast-error {
+            background: #fef3f2;
+            border: 1px solid #fec3a6;
+            color: #b42318;
+        }
+        .toast.toast-success {
+            background: #ecfdf3;
+            border: 1px solid #6ce9a6;
+            color: #027a48;
+        }
+        .toast.toast-info {
+            background: #f2effd;
+            border: 1px solid #b692f6;
+            color: #5925dc;
+        }
+        .toast.toast-exit {
+            animation: toastOut 0.3s ease forwards;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(40px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(40px); }
+        }
+
         /* Test Cases UI */
         .tc-card {
             cursor: pointer;
@@ -538,7 +591,7 @@
 
     <header>
         <div class="nav-container">
-            <a href="#" class="logo">
+            <a href="#" class="logo" onclick="event.preventDefault(); switchView('dashboard')">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -625,7 +678,7 @@
                         <div class="grid-2">
                             <div class="form-group">
                                 <label>Treatment Date</label>
-                                <input type="date" id="treatmentDate" required value="2024-11-01">
+                                <input type="date" id="treatmentDate" required>
                             </div>
                             <div class="form-group">
                                 <label>Claimed Amount (₹)</label>
@@ -779,6 +832,9 @@
         </div>
     </main>
 
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
     <!-- Global Loader -->
     <div class="loader-overlay" id="loader">
         <div class="spinner"></div>
@@ -796,7 +852,35 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadClaims();
             setupFileDrop();
+            initDateField();
         });
+
+        // Toast notification system (replaces browser alert)
+        function showToast(message, type = 'error', duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const icon = type === 'error' ? '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>' :
+                         type === 'success' ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>' :
+                         '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>';
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${icon}</svg><div>${message}</div>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        // Date field: default today, max today, min 30 days ago
+        function initDateField() {
+            const dateInput = document.getElementById('treatmentDate');
+            const today = new Date();
+            const minDate = new Date();
+            minDate.setDate(today.getDate() - 30);
+            dateInput.value = today.toISOString().split('T')[0];
+            dateInput.max = today.toISOString().split('T')[0];
+            dateInput.min = minDate.toISOString().split('T')[0];
+        }
 
         // Navigation
         function switchView(viewName) {
@@ -927,8 +1011,26 @@
             const hospital = document.getElementById('hospitalName').value;
             const simFail = document.getElementById('simFailure').checked;
             
+            // Validate date
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const selectedDate = new Date(date);
+            selectedDate.setHours(0,0,0,0);
+            const minDate = new Date();
+            minDate.setDate(today.getDate() - 30);
+            minDate.setHours(0,0,0,0);
+
+            if (selectedDate > today) {
+                showToast('Treatment date cannot be in the future.', 'error');
+                return;
+            }
+            if (selectedDate < minDate) {
+                showToast('Claims must be submitted within 30 days of treatment. This date is too old.', 'error');
+                return;
+            }
+
             if (uploadedFiles.length === 0) {
-                alert("Please upload at least one document.");
+                showToast('Please upload at least one document.', 'error');
                 return;
             }
             
@@ -960,11 +1062,11 @@
                     renderFileList();
                     loadClaimDetails(data.claim_id);
                 } else {
-                    alert(`Error: ${data.detail?.message || JSON.stringify(data.detail)}`);
+                    showToast(`${data.detail?.message || JSON.stringify(data.detail)}`, 'error');
                 }
             } catch (e) {
                 hideLoader();
-                alert(`Network error: ${e.message}`);
+                showToast(`Network error: ${e.message}`, 'error');
             }
         }
 
@@ -1106,11 +1208,11 @@
                 if (res.ok) {
                     renderEvalResults(data);
                 } else {
-                    alert(`Error: ${data.detail}`);
+                    showToast(`Eval Error: ${data.detail}`, 'error');
                 }
             } catch (e) {
                 hideLoader();
-                alert(`Network error: ${e.message}`);
+                showToast(`Network error: ${e.message}`, 'error');
             }
         }
 

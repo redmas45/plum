@@ -38,6 +38,12 @@ class Settings(BaseSettings):
     upload_dir: str = Field(default="./uploads", alias="UPLOAD_DIR")
     max_file_size_mb: int = Field(default=10, alias="MAX_FILE_SIZE_MB")
 
+    # ── Confidence ─────────────────────────────────────
+    initial_confidence: float = Field(
+        default=1.0, alias="INITIAL_CONFIDENCE",
+        description="Starting confidence score for the pipeline (0.0-1.0)"
+    )
+
     # ── Paths ──────────────────────────────────────────
     policy_file: str = Field(
         default="./data/policy_terms.json", alias="POLICY_FILE"

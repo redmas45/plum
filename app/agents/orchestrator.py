@@ -27,6 +27,7 @@ from app.models.claim import (
 from app.models.document import DocumentVerificationResult, VerificationStatus
 from app.models.policy import PolicyTerms
 from app.models.trace import AgentName, AgentStep, ClaimTrace, FailureRecord, StepStatus
+from app.config import settings
 from app.services.llm_client import LLMClient
 from app.utils.confidence import ConfidenceTracker
 
@@ -59,7 +60,7 @@ class Orchestrator:
 
         # Initialize trace and confidence
         trace = ClaimTrace(claim_id=claim_id)
-        confidence = ConfidenceTracker(initial=1.0)
+        confidence = ConfidenceTracker(initial=settings.initial_confidence)
 
         # Look up member
         member = self.policy.get_member(record.member_id)
