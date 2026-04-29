@@ -21,5 +21,5 @@ RUN mkdir -p data uploads
 # Expose port
 EXPOSE 8000
 
-# Run uvicorn
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run uvicorn (Using shell form so $PORT is evaluated correctly by Railway)
+CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
