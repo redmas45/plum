@@ -1,74 +1,96 @@
 # Plum AI Claims Processing System
 
-An intelligent, multi-agent pipeline for processing health insurance claims, built for the Plum AI Engineer assignment.
+A multi-agent, AI-powered health insurance claims processing system. This project automates the assessment of medical claims by orchestrating a pipeline of specialized LLM agents (powered by Groq and Llama models) to perform document verification, policy checking, fraud detection, and final claim adjudication.
 
-## System Overview
+## 🌟 Key Features
 
-This system automates the processing of health insurance claims using a 5-agent architecture:
-1. **Document Verifier:** Validates document types, readability, and patient name consistency using Vision LLMs.
-2. **Document Parser:** Extracts structured data (line items, diagnoses, amounts) from raw images.
-3. **Policy Checker:** Evaluates extracted data against complex policy rules (waiting periods, exclusions, limits, co-pays).
-4. **Fraud Detector:** Analyzes claim history and document consistency to flag suspicious patterns.
-5. **Decision Maker:** Synthesizes all inputs into an explainable final decision (`APPROVED`, `PARTIAL`, `REJECTED`, or `MANUAL_REVIEW`).
+- **Multi-Agent Pipeline**: Utilizes an orchestrated flow of 5 specialized AI agents (Doc Verifier, Doc Parser, Policy Checker, Fraud Detector, Decision Maker).
+- **Explainable AI (XAI)**: Generates a complete "Pipeline Trace" for every claim, breaking down agent reasoning, confidence scores, and token usage step-by-step.
+- **Vision Models Integration**: Uses Llama 4 Scout (Vision) to extract data directly from handwritten hospital receipts and uploaded documents.
+- **Dynamic Frontend Dashboard**: A modern, responsive Single Page Application (SPA) to submit claims, review decisions, and download beautiful, print-ready PDF summaries.
+- **Evaluation Suite**: Built-in test suite to evaluate the model's accuracy against historical medical claims, featuring detailed metrics and performance tracking.
 
-## Features
+## 🏗️ Technology Stack
 
-- **Multi-Agent Pipeline:** 5 distinct agents coordinated by an Orchestrator.
-- **Explainable AI:** Every decision includes a full `ClaimTrace` detailing exactly what each agent did, how long it took, and how it affected the confidence score.
-- **Graceful Degradation:** If an agent fails (simulated in TC011), the pipeline catches it, logs a `FailureRecord`, deducts confidence, and continues processing safely.
-- **Premium UI:** A modern, single-page application dashboard for submitting claims, reviewing decisions, and running the evaluation suite.
-- **Comprehensive Evaluation:** Built-in test runner for all 12 assignment test cases.
+- **Backend**: Python, FastAPI, Pydantic
+- **AI / LLMs**: Groq API (Llama 3.3 70B Versatile, Llama 4 Scout 17B Instruct)
+- **Database**: SQLite (via aiosqlite for async support)
+- **Frontend**: Vanilla HTML, CSS, JavaScript (No complex build steps required)
 
-## Tech Stack
+## 🚀 Local Development Setup
 
-- **Backend:** Python 3.11, FastAPI, aiosqlite, Pydantic
-- **AI Integration:** Groq API (Llama 4 Scout Vision, Llama 3.3 70B Text)
-- **Frontend:** Vanilla JS, HTML, CSS (No build steps required)
+### Prerequisites
+- Python 3.11+
+- A Groq API Key (`GROQ_API_KEY`)
 
-## Local Setup
+### Installation
 
-1. **Clone the repository:**
+1. **Clone the repository**
    ```bash
-   git clone <repo-url>
-   cd plum-claims
+   git clone https://github.com/redmas45/plum.git
+   cd plum
    ```
 
-2. **Set up Python environment:**
+2. **Create a virtual environment (Optional but recommended)**
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+   ```
+
+3. **Install dependencies**
+   ```bash
    pip install -r requirements.txt
    ```
 
-3. **Configure Environment:**
-   Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-   Open `.env` and add your **Groq API Key**:
-   ```
-   GROQ_API_KEY=gsk_your_key_here
+4. **Environment Configuration**
+   - Copy the `.env.example` file and rename it to `.env`.
+   - Open `.env` and add your Groq API Key:
+   ```env
+   GROQ_API_KEY=your_actual_groq_api_key_here
    ```
 
-4. **Run the Application:**
-   Use the provided runner script:
+5. **Run the Server**
    ```bash
    python run.py
    ```
-   *The API and UI will be available at http://127.0.0.1:8000*
+   - The API and Dashboard will be available at: `http://127.0.0.1:8000`
 
-## Using the UI
+---
 
-The application includes a built-in dashboard accessible at the root URL:
-- **Dashboard:** View all processed claims.
-- **Submit Claim:** Upload files and submit a new claim through the AI pipeline.
-- **Run Eval:** Execute all 12 test cases automatically and view the results.
+## ☁️ Deployment (Railway)
 
-## Documentation
+This application is configured for seamless deployment on [Railway.app](https://railway.app/).
 
-- [Architecture Design](docs/architecture.md)
-- [Component Contracts](docs/component_contracts.md)
+### Step-by-Step Railway Deployment:
 
-## Evaluation Report
+1. **Create a Railway Account**: Sign up or log in to [Railway](https://railway.app/).
+2. **New Project**: Click **New Project** -> **Deploy from GitHub repo**.
+3. **Select Repository**: Choose your `plum` repository.
+4. **Environment Variables**:
+   - Before the deployment finishes, go to the **Variables** tab in your Railway dashboard.
+   - Add the following variables:
+     - `GROQ_API_KEY`: (Paste your Groq API Key here)
+     - `APP_ENV`: `production`
+5. **Add a Volume for SQLite persistence** (Crucial):
+   - In the Railway dashboard, go to the **Settings** tab.
+   - Scroll down to **Volumes** and click **New Volume**.
+   - Mount the volume to the absolute path `/app/data`.
+   - Update your environment variable to point to the mounted volume:
+     - `DATABASE_URL`: `sqlite+aiosqlite:////app/data/claims.db`
+6. **Generate Domain**:
+   - Go to the **Settings** tab -> **Networking**.
+   - Click **Generate Domain** to get a public, shareable HTTPS URL.
+7. **Deploy**:
+   - Railway will use the provided `Dockerfile` or `railway.toml` to automatically build and launch the FastAPI server.
 
-You can run the full evaluation suite from the UI by navigating to the "Run Eval" tab. This will process all test cases from `data/test_cases.json` and compare the system's output against the expected results.
+## 📊 Pipeline Overview
+
+1. **User submits claim** via the frontend (Member ID, Category, Amount, Documents).
+2. **Doc Verifier**: Validates document authenticity and legibility.
+3. **Doc Parser**: Extracts structured data (line items, costs) from receipts using Vision LLM.
+4. **Policy Checker**: Cross-references the extracted data against the member's policy terms (Coverage limits, exclusions).
+5. **Fraud Detector**: Analyzes claim patterns and descriptions for anomalies or synthetic fraud.
+6. **Decision Maker**: Synthesizes reports from all previous agents and generates a final adjudication decision (APPROVED, REJECTED, MANUAL_REVIEW) with an approved amount and a human-readable summary.
+
+---
+*Built by Rajiv Kumar for Plum AI*
