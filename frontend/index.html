@@ -803,13 +803,19 @@
         <div id="view-eval" class="view">
             <div class="flex justify-between items-center mb-2">
                 <h2>Evaluation Suite</h2>
-                <button class="btn btn-primary" onclick="runEval()">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                    Run All Test Cases
-                </button>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a href="/eval/report/download" download class="btn" style="background: linear-gradient(135deg, #027a48, #05603a); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Download Eval Report
+                    </a>
+                    <button class="btn btn-primary" onclick="runEval()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Run All Test Cases
+                    </button>
+                </div>
             </div>
             
-            <p class="text-muted mb-2">Run the 12 assignment test cases through the multi-agent pipeline to verify accuracy.</p>
+            <p class="text-muted mb-2">Run the 12 assignment test cases through the multi-agent pipeline, or download the formal evaluation report (Deliverable #4).</p>
             
             <div id="evalSummaryGrid" class="grid-3 mb-2" style="display: none;">
                 <div class="stat-card">

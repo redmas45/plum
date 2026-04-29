@@ -10,6 +10,7 @@ import time
 from pathlib import Path
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 
 from app.agents.orchestrator import Orchestrator
 from app.api.dependencies import get_llm_client, get_policy
@@ -18,6 +19,19 @@ from app.models.claim import ClaimCategory, ClaimRecord, DocumentMeta
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/eval", tags=["Evaluation"])
+
+
+@router.get("/report/download")
+async def download_eval_report():
+    """Download the formal evaluation report (Deliverable #4)."""
+    report_path = Path("docs/eval_report.md")
+    if not report_path.exists():
+        raise HTTPException(status_code=404, detail="Eval report not found. Generate it first.")
+    return FileResponse(
+        path=str(report_path),
+        filename="Plum_AI_Eval_Report.md",
+        media_type="text/markdown",
+    )
 
 
 @router.post("/run-all")
